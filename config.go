@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"sync/atomic"
 
 	"github.com/spf13/viper"
@@ -11,7 +12,7 @@ import (
 // Config 配置内容
 type Config struct {
 	Key   string
-	Port  int32
+	Port  int
 	Token string
 }
 
@@ -20,16 +21,20 @@ var gConfig atomic.Value
 // LoadConfig 加载配置
 func LoadConfig() {
 	// 读取配置文件
-	viper.SetConfigFile("config.yaml")
+	viper.SetConfigFile(".env")
+	//viper.SetConfigFile("config.yaml")
 	if err := viper.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("读取配置文件失败: %s", err))
 	}
-
+	viper.AutomaticEnv()
 	// 解析配置文件
 	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		panic(fmt.Errorf("解析配置文件失败: %s", err))
-	}
+	config.Key = fmt.Sprint(viper.Get("OPENAI_API_KEY"))
+	config.Port, _ = strconv.Atoi(fmt.Sprint(viper.Get("HTTP_PORT")))
+	config.Token = fmt.Sprint(viper.Get("WECHAT_TOKEN"))
+	//if err := viper.Unmarshal(&config); err != nil {
+	//	panic(fmt.Errorf("解析配置文件失败: %s", err))
+	//}
 	gConfig.Store(config)
 }
 
